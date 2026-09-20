@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SSDCT Question Paper Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-900: #0f2d4a;
+    --blue-700: #17436c;
+    --blue-500: #2464a0;
+    --blue-100: #dfeaf5;
+    --yellow-500: #e8a839;
+    --yellow-600: #cf8f1f;
+    --yellow-100: #fbecc9;
+    --green-600: #2f7a4f;
+    --green-700: #245f3d;
+    --green-100: #dcefe1;
+    --paper: #fffdf8;
+    --ink: #1b2430;
+    --ink-soft: #55606e;
+    --line: #d9dee5;
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --danger: #b3452f;
+    --radius-s: 6px;
+    --radius-m: 10px;
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #10161d;
+      --panel: #171f28;
+      --paper: #fbf8f1;
+      --ink: #e7ecf2;
+      --ink-soft: #a3b0bf;
+      --line: #2b3743;
+      --blue-100: #1c3247;
+      --yellow-100: #3a3016;
+      --green-100: #1a3324;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10161d;
+    --panel: #171f28;
+    --paper: #fbf8f1;
+    --ink: #e7ecf2;
+    --ink-soft: #a3b0bf;
+    --line: #2b3743;
+    --blue-100: #1c3247;
+    --yellow-100: #3a3016;
+    --green-100: #1a3324;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+  ::selection { background: var(--yellow-100); }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40;
+    background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
+    color: #fff;
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border-bottom: 3px solid var(--yellow-500);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 9px;
+    background: var(--yellow-500); color: var(--blue-900);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .brand-text h1 { font-family: var(--font-display); font-size: 17px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+  .brand-text p { margin: 1px 0 0; font-size: 11.5px; color: var(--blue-100); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tbtn {
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: var(--radius-s);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s ease, transform .1s ease;
+    white-space: nowrap;
+  }
+  .tbtn:hover { background: rgba(255,255,255,.18); }
+  .tbtn:active { transform: translateY(1px); }
+  .tbtn.accent { background: var(--yellow-500); color: var(--blue-900); border-color: var(--yellow-500); }
+  .tbtn.accent:hover { background: var(--yellow-600); }
+  .tbtn.green { background: var(--green-600); color: #fff; border-color: var(--green-600); }
+  .tbtn.green:hover { background: var(--green-700); }
+  .save-status { font-size: 11.5px; color: var(--yellow-100); align-self: center; margin-left: 4px; min-width: 78px; }
+
+  /* ---------- Layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 18px;
+    padding: 18px;
+    align-items: start;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--blue-100);
+  }
+  .panel-head h2 { margin: 0; font-size: 14px; font-weight: 700; color: var(--blue-900); display:flex; align-items:center; gap:8px; }
+  .panel-body { padding: 14px 16px; }
+
+  /* ---------- Builder column ---------- */
+  .builder-col { position: sticky; top: calc(78px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 96px); overflow-y: auto; }
+  @media (max-width: 980px) { .builder-col { position: static; max-height: none; } }
+
+  .field { margin-bottom: 11px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 4px; text-transform: none; }
+  .field input[type=text], .field input[type=date], .field input[type=number], .field textarea, .field select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-s);
+    font-size: 13.5px; background: var(--panel); color: var(--ink); font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 44px; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--blue-500); outline-offset: 1px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .logo-preview {
+    width: 44px; height: 44px; border-radius: 8px; border: 1px dashed var(--line);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+    background: var(--bg); font-size: 18px;
+  }
+  .logo-preview img { width: 100%; height: 100%; object-fit: contain; }
+  .file-btn { font-size: 12px; padding: 7px 10px; border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius-s); cursor: pointer; color: var(--ink); }
+
+  details.collapser { border: 1px solid var(--line); border-radius: var(--radius-s); margin-bottom: 12px; }
+  details.collapser > summary {
+    cursor: pointer; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--blue-900);
+    background: var(--blue-100); list-style: none; display: flex; align-items: center; justify-content: space-between;
+  }
+  details.collapser > summary::-webkit-details-marker { display: none; }
+  details.collapser > summary::after { content: '▾'; transition: transform .15s; }
+  details.collapser[open] > summary::after { transform: rotate(180deg); }
+  details.collapser .inner { padding: 12px; }
+
+  /* ---------- Sections / questions builder ---------- */
+  .section-card { border: 1px solid var(--line); border-radius: var(--radius-s); margin-bottom: 12px; overflow: hidden; }
+  .section-card-head {
+    background: var(--green-100); padding: 8px 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-card-head input[type=text] { flex: 1; font-weight: 700; font-size: 13px; border: 1px solid transparent; background: transparent; padding: 5px 6px; border-radius: 5px; color: var(--ink); }
+  .section-card-head input[type=text]:focus { background: var(--panel); border-color: var(--line); outline: none; }
+  .icon-btn {
+    width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: var(--ink-soft); flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--bg); color: var(--ink); }
+  .icon-btn.danger:hover { background: #fbe6e0; color: var(--danger); border-color: var(--danger); }
+  .section-card-body { padding: 10px; }
+  .section-card-body .field { margin-bottom: 8px; }
+
+  .q-item { border: 1px solid var(--line); border-radius: var(--radius-s); padding: 8px 9px; margin-bottom: 8px; background: var(--bg); }
+  .q-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .q-index-tag { font-size: 11px; font-weight: 700; background: var(--blue-500); color: #fff; border-radius: 5px; padding: 2px 7px; flex-shrink: 0; }
+  .q-item-top .spacer { flex: 1; }
+  .q-item textarea { min-height: 40px; }
+  .opts-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 6px; }
+  .opt-row { display: flex; align-items: center; gap: 6px; }
+  .opt-row input[type=radio] { accent-color: var(--green-600); flex-shrink: 0; }
+  .opt-row input[type=text] { flex: 1; padding: 6px 8px; font-size: 12.5px; }
+  .q-meta-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .q-meta-row select, .q-meta-row input { font-size: 12px; padding: 6px 7px; }
+
+  .add-btn {
+    width: 100%; padding: 9px; border: 1.5px dashed var(--blue-500); border-radius: var(--radius-s);
+    background: transparent; color: var(--blue-700); font-weight: 700; font-size: 12.5px; cursor: pointer;
+  }
+  .add-btn:hover { background: var(--blue-100); }
+  .add-q-btn { margin-top: 2px; border-color: var(--green-600); color: var(--green-700); }
+  .add-q-btn:hover { background: var(--green-100); }
+
+  .small-note { font-size: 11px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+
+  /* ---------- Preview column ---------- */
+  .tabs { display: flex; gap: 4px; padding: 8px 10px 0; background: var(--blue-100); }
+  .tab-btn {
+    padding: 9px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 700;
+    color: var(--blue-700); border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn[aria-selected="true"] { background: var(--panel); color: var(--blue-900); }
+  .preview-wrap { padding: 22px; background: var(--bg); }
+  .sheet {
+    background: var(--paper); color: #1a1a1a; max-width: 760px; margin: 0 auto;
+    border: 1px solid var(--line); border-radius: 4px; padding: 34px 40px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    font-family: var(--font-body);
+  }
+  .sheet-logo { text-align: center; margin-bottom: 6px; }
+  .sheet-logo img { max-height: 56px; }
+  .sheet h2.school { text-align: center; font-family: var(--font-display); font-size: 22px; margin: 0 0 2px; color: #14202c; }
+  .sheet .exam-title { text-align: center; font-size: 14.5px; font-weight: 600; color: #33404d; margin: 0 0 10px; }
+  .sheet .meta-line { display: flex; justify-content: space-between; font-size: 12.5px; border-top: 1.5px solid #1a1a1a; border-bottom: 1.5px solid #1a1a1a; padding: 6px 0; margin-bottom: 16px; flex-wrap: wrap; gap: 4px; }
+  .sheet .meta-line span b { font-weight: 700; }
+  .sheet .section-title { font-family: var(--font-display); font-weight: 600; font-size: 15px; margin: 20px 0 4px; color: #14202c; border-bottom: 1px solid #cfd6dd; padding-bottom: 4px; }
+  .sheet .section-instructions { font-style: italic; font-size: 12px; color: #4a5560; margin-bottom: 8px; }
+  .sheet .q-row { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.55; margin-bottom: 9px; }
+  .sheet .q-num { font-weight: 700; flex-shrink: 0; min-width: 22px; }
+  .sheet .q-body { flex: 1; }
+  .sheet .q-marks { font-weight: 700; flex-shrink: 0; white-space: nowrap; font-size: 12px; color: #33404d; }
+  .sheet .q-options { margin: 5px 0 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; }
+  .sheet .q-options li { font-size: 12.5px; }
+  .sheet .or-divider { text-align: center; font-weight: 700; font-size: 11.5px; letter-spacing: .5px; color: #7a5c00; margin: 4px 0; }
+  .sheet .empty-note { text-align: center; color: #8a93a0; font-size: 13px; padding: 30px 10px; }
+  .sheet .footer-line { margin-top: 26px; text-align: center; font-size: 10.5px; color: #9aa3ad; }
+
+  /* answer key */
+  .sheet .key-row { display: flex; gap: 8px; font-size: 13px; margin-bottom: 8px; }
+  .sheet .key-num { font-weight: 700; min-width: 22px; }
+  .sheet .key-answer { color: #1c4d2c; }
+
+  /* analysis */
+  .an-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 20px; }
+  .an-stat { border: 1px solid #dfe4e9; border-radius: 8px; padding: 12px; text-align: center; }
+  .an-stat .num { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: #14202c; }
+  .an-stat .lbl { font-size: 11px; color: #5a6673; margin-top: 2px; }
+  table.an-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 12.5px; }
+  table.an-table th, table.an-table td { border: 1px solid #dfe4e9; padding: 7px 9px; text-align: left; }
+  table.an-table th { background: #f1f5f8; font-weight: 700; }
+  table.an-table td.num-col, table.an-table th.num-col { text-align: center; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .bar-label { width: 110px; flex-shrink: 0; color: #33404d; }
+  .bar-track { flex: 1; height: 14px; background: #eef1f4; border-radius: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 7px; }
+  .bar-value { width: 60px; text-align: right; flex-shrink: 0; font-weight: 700; color: #14202c; }
+
+  footer.app-footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 10px 18px 26px; }
+
+  /* ---------- Print ---------- */
+  .print-sheet { display: none; }
+  @media print {
+    body * { visibility: hidden !important; }
+    .print-sheet.active, .print-sheet.active * { visibility: visible !important; }
+    .print-sheet.active {
+      display: block !important; position: absolute; top: 0; left: 0; width: 100%;
+      page-break-after: always;
+    }
+    .print-sheet.active:last-child { page-break-after: auto; }
+    @page { margin: 14mm; }
+  }
+
+  /* wide-content scroller */
+  .scroll-x { overflow-x: auto; }
+
+  input[type=range] { accent-color: var(--blue-500); }
+
+  /* ---------- custom confirm modal (native confirm() can be blocked in sandboxed frames) ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,20,26,.55); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-box {
+    background: var(--panel); border-radius: var(--radius-m); padding: 20px; max-width: 380px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,.3); border: 1px solid var(--line);
+  }
+  .modal-box p { margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .tbtn2 { padding: 8px 14px; border-radius: var(--radius-s); font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .tbtn2.accent { background: var(--yellow-500); color: var(--blue-900); border-color: var(--yellow-500); }
+  .tbtn2.ghost { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">QP</div>
+    <div class="brand-text">
+      <h1>Question Paper Builder</h1>
+      <p>SSDCT · build, shuffle &amp; print exam papers</p>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="tbtn" id="btnShuffle" title="Shuffle question order within every section">🎲 Shuffle</button>
+    <button class="tbtn accent" id="btnSave" title="Save to this browser">💾 Save</button>
+    <button class="tbtn" id="btnReset" title="Clear everything and start over">↩️ Reset</button>
+    <button class="tbtn green" id="btnPrintPaper" title="Print only the question paper">🖨️ Print Paper</button>
+    <button class="tbtn green" id="btnPrintAll" title="Print paper + marks analysis + answer key">🖨️ Print All</button>
+    <span class="save-status" id="saveStatus">Ready</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ============ LEFT: BUILDER ============ -->
+  <div class="panel builder-col">
+    <div class="panel-head"><h2>⚙️ Header setup</h2></div>
+    <div class="panel-body">
+      <details class="collapser" open>
+        <summary>School &amp; exam details</summary>
+        <div class="inner">
+          <div class="field">
+            <label for="f-logo">School logo (optional)</label>
+            <div class="logo-row">
+              <div class="logo-preview" id="logoPreview">🏫</div>
+              <label class="file-btn">Upload
+                <input type="file" id="f-logo" accept="image/*" style="display:none">
+              </label>
+              <button class="icon-btn" id="btnClearLogo" title="Remove logo">✕</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-school">School name</label>
+            <input type="text" id="f-school" placeholder="e.g. Sri Saraswathi Vidya Mandir">
+          </div>
+          <div class="field">
+            <label for="f-exam">Exam title</label>
+            <input type="text" id="f-exam" placeholder="e.g. First Term Examination 2026-27">
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-subject">Subject</label>
+              <input type="text" id="f-subject" placeholder="e.g. Mathematics">
+            </div>
+            <div class="field">
+              <label for="f-class">Class / Grade</label>
+              <input type="text" id="f-class" placeholder="e.g. Class 8">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-medium">Medium</label>
+              <input type="text" id="f-medium" placeholder="e.g. English">
+            </div>
+            <div class="field">
+              <label for="f-date">Date</label>
+              <input type="date" id="f-date">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-duration">Duration</label>
+              <input type="text" id="f-duration" placeholder="e.g. 3 Hours">
+            </div>
+            <div class="field">
+              <label for="f-maxmarks">Max marks</label>
+              <input type="number" id="f-maxmarks" placeholder="e.g. 80" min="0">
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-teacher">Set by (teacher name)</label>
+            <input type="text" id="f-teacher" placeholder="e.g. Mrs. G. Rao">
+          </div>
+          <div class="field">
+            <label for="f-instr">General instructions (one per line)</label>
+            <textarea id="f-instr" placeholder="All questions are compulsory.&#10;Figures to the right indicate full marks."></textarea>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel-head"><h2>📚 Sections &amp; questions</h2></div>
+    <div class="panel-body" id="sectionsWrap">
+      <!-- section cards injected here -->
+    </div>
+    <div class="panel-body" style="padding-top:0;">
+      <button class="add-btn" id="btnAddSection">+ Add section</button>
+      <button class="add-btn" id="btnLoadPattern" style="margin-top:8px; border-color:var(--yellow-600); color:#8a5f0c;">📐 Load 80-Mark Pattern (Q1–Q5)</button>
+      <p class="small-note">The 80-mark loader builds Q1 (12 objective questions, 2 marks each, answer any 10) and Q2–Q5 (4 questions each, 5 marks each, answer any 3) — just fill in the question text. Every change autosaves a draft to <b>this browser</b> a second after you stop typing. Use <b>💾 Save</b> any time for an instant, named save point. Nothing leaves your device.</p>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT: PREVIEW ============ -->
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn" role="tab" data-tab="paper" aria-selected="true">📄 Question Paper</button>
+      <button class="tab-btn" role="tab" data-tab="analysis" aria-selected="false">📊 Marks Analysis</button>
+      <button class="tab-btn" role="tab" data-tab="key" aria-selected="false">🔑 Answer Key</button>
+    </div>
+    <div class="preview-wrap">
+      <div id="view-paper" class="sheet"></div>
+      <div id="view-analysis" class="sheet" style="display:none;"></div>
+      <div id="view-key" class="sheet" style="display:none;"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="app-footer">Question Paper Builder for SSDCT · works fully offline in your browser · your data never leaves this device</footer>
+
+<!-- print-only sheets, filled at print time -->
+<div class="print-sheet" id="print-paper"></div>
+<div class="print-sheet" id="print-analysis"></div>
+<div class="print-sheet" id="print-key"></div>
+
+<div class="modal-overlay" id="confirmOverlay" style="display:none;">
+  <div class="modal-box">
+    <p id="confirmMsg"></p>
+    <div class="modal-actions">
+      <button class="tbtn2 ghost" id="confirmCancelBtn">Cancel</button>
+      <button class="tbtn2 accent" id="confirmOkBtn">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- state ---------------- */
+  const STORAGE_KEY = "ssdct-qp-builder-v1";
+  const TYPE_LABELS = { mcq: "Multiple Choice", short: "Short Answer", long: "Long Answer", fillblank: "Fill in the Blank", truefalse: "True / False" };
+  const DIFF_COLORS = { easy: "#2f7a4f", medium: "#cf8f1f", hard: "#b3452f" };
+
+  function uid(){ return Math.random().toString(36).slice(2, 9); }
+
+  function askConfirm(message, onConfirm){
+    const overlay = document.getElementById("confirmOverlay");
+    document.getElementById("confirmMsg").textContent = message;
+    overlay.style.display = "flex";
+    const okBtn = document.getElementById("confirmOkBtn");
+    const cancelBtn = document.getElementById("confirmCancelBtn");
+    function cleanup(){
+      overlay.style.display = "none";
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+    }
+    function onOk(){ cleanup(); onConfirm(); }
+    function onCancel(){ cleanup(); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  }
+
+  function buildEightyMarkSections(){
+    const mk = (n, type, marks) => Array.from({length:n}, ()=>({
+      id: uid(), type, text: "", marks, options: type==="mcq" ? ["","","",""] : [], correct: type==="mcq" ? null : null,
+      difficulty: "medium", answer: "", orText: ""
+    }));
+    return [
+      { id: uid(), name: "Question 1 — Objective Type", instructions: "", chooseCount: 10, questions: mk(12,"mcq",2) },
+      { id: uid(), name: "Question 2", instructions: "", chooseCount: 3, questions: mk(4,"long",5) },
+      { id: uid(), name: "Question 3", instructions: "", chooseCount: 3, questions: mk(4,"long",5) },
+      { id: uid(), name: "Question 4", instructions: "", chooseCount: 3, questions: mk(4,"long",5) },
+      { id: uid(), name: "Question 5", instructions: "", chooseCount: 3, questions: mk(4,"long",5) },
+    ];
+  }
+
+  function defaultState(){
+    return {
+      header: {
+        logo: "", school: "", exam: "", subject: "", className: "", medium: "",
+        date: "", duration: "", maxMarks: "80", teacher: "",
+        instructions: "All questions are compulsory.\nFigures to the right indicate full marks."
+      },
+      sections: buildEightyMarkSections()
+    };
+  }
+
+  let state = null;
+  let activeTab = "paper";
+  let saveTimer = null;
+
+  /* ---------------- persistence ---------------- */
+  function loadState(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) { return JSON.parse(raw); }
+    } catch(e){ /* storage unavailable or bad JSON */ }
+    return defaultState();
+  }
+
+  function persist(showStatus){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (showStatus) flashStatus("Saved ✓");
+    } catch(e){
+      flashStatus("Save failed");
+    }
+  }
+
+  function scheduleAutosave(){
+    flashStatus("Editing…");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=> persist(false), 900);
+  }
+
+  function flashStatus(msg){
+    const el = document.getElementById("saveStatus");
+    el.textContent = msg;
+  }
+
+  /* ---------------- header form binding ---------------- */
+  const headerFields = [
+    ["f-school","school"], ["f-exam","exam"], ["f-subject","subject"], ["f-class","className"],
+    ["f-medium","medium"], ["f-date","date"], ["f-duration","duration"], ["f-maxmarks","maxMarks"],
+    ["f-teacher","teacher"], ["f-instr","instructions"]
+  ];
+
+  function bindHeaderForm(){
+    headerFields.forEach(([elId, key])=>{
+      const el = document.getElementById(elId);
+      el.addEventListener("input", ()=>{
+        state.header[key] = el.value;
+        scheduleAutosave();
+        renderPreview();
+      });
+    });
+
+    document.getElementById("f-logo").addEventListener("change", (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        state.header.logo = reader.result;
+        renderLogo();
+        scheduleAutosave();
+        renderPreview();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("btnClearLogo").addEventListener("click", ()=>{
+      state.header.logo = "";
+      document.getElementById("f-logo").value = "";
+      renderLogo();
+      scheduleAutosave();
+      renderPreview();
+    });
+  }
+
+  function fillHeaderForm(){
+    headerFields.forEach(([elId,key])=>{
+      document.getElementById(elId).value = state.header[key] || "";
+    });
+    renderLogo();
+  }
+
+  function renderLogo(){
+    const box = document.getElementById("logoPreview");
+    box.innerHTML = state.header.logo ? '<img src="'+state.header.logo+'" alt="School logo">' : "🏫";
+  }
+
+  /* ---------------- builder: sections & questions ---------------- */
+  function addSection(){
+    state.sections.push({ id: uid(), name: "New Section", instructions: "", chooseCount: 0, questions: [] });
+    scheduleAutosave(); renderBuilder(); renderPreview();
+  }
+
+  function loadEightyMarkPattern(){
+    const doLoad = ()=>{
+      state.sections = buildEightyMarkSections();
+      if (!state.header.maxMarks) state.header.maxMarks = "80";
+      scheduleAutosave(); fillHeaderForm(); renderBuilder(); renderPreview();
+      flashStatus("Pattern loaded ✓");
+    };
+    if (state.sections.length) askConfirm("This replaces all current sections and questions with the 80-mark Q1–Q5 pattern. Continue?", doLoad);
+    else doLoad();
+  }
+
+  function removeSection(sid){
+    askConfirm("Remove this section and all its questions?", ()=>{
+      state.sections = state.sections.filter(s => s.id !== sid);
+      scheduleAutosave(); renderBuilder(); renderPreview();
+    });
+  }
+
+  function moveSection(sid, dir){
+    const i = state.sections.findIndex(s=>s.id===sid);
+    const j = i + dir;
+    if (j < 0 || j >= state.sections.length) return;
+    [state.sections[i], state.sections[j]] = [state.sections[j], state.sections[i]];
+    scheduleAutosave(); renderBuilder(); renderPreview();
+  }
+
+  function addQuestion(sid){
+    const sec = state.sections.find(s=>s.id===sid);
+    sec.questions.push({ id: uid(), type: "short", text: "", marks: 1, options: [], correct: null, difficulty: "medium", answer: "", orText: "" });
+    scheduleAutosave(); renderBuilder(); renderPreview();
+  }
+
+  function removeQuestion(sid, qid){
+    const sec = state.sections.find(s=>s.id===sid);
+    sec.questions = sec.questions.filter(q=>q.id!==qid);
+    scheduleAutosave(); renderBuilder(); renderPreview();
+  }
+
+  function moveQuestion(sid, qid, dir){
+    const sec = state.sections.find(s=>s.id===sid);
+    const i = sec.questions.findIndex(q=>q.id===qid);
+    const j = i + dir;
+    if (j < 0 || j >= sec.questions.length) return;
+    [sec.questions[i], sec.questions[j]] = [sec.questions[j], sec.questions[i]];
+    scheduleAutosave(); renderBuilder(); renderPreview();
+  }
+
+  function shuffleAll(){
+    state.sections.forEach(sec=>{
+      for (let i = sec.questions.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i+1));
+        [sec.questions[i], sec.questions[j]] = [sec.questions[j], sec.questions[i]];
+      }
+    });
+    scheduleAutosave(); renderBuilder(); renderPreview();
+    flashStatus("Shuffled 🎲");
+  }
+
+  function effectiveSectionMarks(sec){
+    const marks = sec.questions.map(q=>q.marks||0);
+    const total = marks.length;
+    const n = sec.chooseCount || 0;
+    if (n > 0 && n < total){
+      return marks.slice().sort((a,b)=>b-a).slice(0,n).reduce((a,b)=>a+b,0);
+    }
+    return marks.reduce((a,b)=>a+b,0);
+  }
+
+  function sectionInstructionLine(sec){
+    const total = sec.questions.length;
+    const n = sec.chooseCount || 0;
+    const parts = [];
+    if (n > 0 && n < total){
+      parts.push("Answer any "+n+" of the following "+total+" questions.");
+    }
+    if (sec.instructions) parts.push(sec.instructions);
+    return parts.join(" ");
+  }
+
+  function escapeHtml(str){
+    return (str || "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
+  }
+
+  function renderBuilder(){
+    const wrap = document.getElementById("sectionsWrap");
+    wrap.innerHTML = "";
+    state.sections.forEach((sec, sIdx)=>{
+      const card = document.createElement("div");
+      card.className = "section-card";
+
+      const head = document.createElement("div");
+      head.className = "section-card-head";
+      head.innerHTML =
+        '<input type="text" data-sid="'+sec.id+'" class="sec-name-input" value="'+escapeHtml(sec.name)+'">'+
+        '<button class="icon-btn" data-act="up" title="Move section up">↑</button>'+
+        '<button class="icon-btn" data-act="down" title="Move section down">↓</button>'+
+        '<button class="icon-btn danger" data-act="del" title="Delete section">🗑</button>';
+      head.querySelector(".sec-name-input").addEventListener("input", (e)=>{ sec.name = e.target.value; scheduleAutosave(); renderPreview(); });
+      head.querySelector('[data-act="up"]').addEventListener("click", ()=>moveSection(sec.id,-1));
+      head.querySelector('[data-act="down"]').addEventListener("click", ()=>moveSection(sec.id,1));
+      head.querySelector('[data-act="del"]').addEventListener("click", ()=>removeSection(sec.id));
+      card.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "section-card-body";
+
+      const instrField = document.createElement("div");
+      instrField.className = "field";
+      instrField.innerHTML = '<label>Extra section instructions (optional)</label><input type="text" class="sec-instr-input" placeholder="e.g. Figures to the right indicate marks." value="'+escapeHtml(sec.instructions)+'">';
+      instrField.querySelector("input").addEventListener("input", (e)=>{ sec.instructions = e.target.value; scheduleAutosave(); renderPreview(); });
+      body.appendChild(instrField);
+
+      const chooseField = document.createElement("div");
+      chooseField.className = "field";
+      chooseField.innerHTML = '<label>Answer any N of M (0 = all compulsory)</label>';
+      const chooseRow = document.createElement("div");
+      chooseRow.style.display = "flex"; chooseRow.style.alignItems = "center"; chooseRow.style.gap = "8px";
+      const chooseInput = document.createElement("input");
+      chooseInput.type = "number"; chooseInput.min = "0"; chooseInput.style.width = "80px";
+      chooseInput.value = sec.chooseCount || 0;
+      chooseInput.addEventListener("input", (e)=>{ sec.chooseCount = parseInt(e.target.value,10) || 0; scheduleAutosave(); renderPreview(); });
+      const chooseNote = document.createElement("span");
+      chooseNote.style.fontSize = "12px"; chooseNote.style.color = "var(--ink-soft)";
+      chooseNote.textContent = "of "+sec.questions.length+" question"+(sec.questions.length===1?"":"s")+" in this section";
+      chooseRow.appendChild(chooseInput); chooseRow.appendChild(chooseNote);
+      chooseField.appendChild(chooseRow);
+      body.appendChild(chooseField);
+
+      sec.questions.forEach((q, qIdx)=>{
+        body.appendChild(renderQuestionEditor(sec, q, qIdx));
+      });
+
+      const addQBtn = document.createElement("button");
+      addQBtn.className = "add-btn add-q-btn";
+      addQBtn.textContent = "+ Add question";
+      addQBtn.addEventListener("click", ()=>addQuestion(sec.id));
+      body.appendChild(addQBtn);
+
+      card.appendChild(body);
+      wrap.appendChild(card);
+    });
+  }
+
+  function renderQuestionEditor(sec, q, qIdx){
+    const item = document.createElement("div");
+    item.className = "q-item";
+
+    const top = document.createElement("div");
+    top.className = "q-item-top";
+    top.innerHTML = '<span class="q-index-tag">Q'+(qIdx+1)+'</span><span class="spacer"></span>'+
+      '<button class="icon-btn" data-act="up" title="Move up">↑</button>'+
+      '<button class="icon-btn" data-act="down" title="Move down">↓</button>'+
+      '<button class="icon-btn danger" data-act="del" title="Delete question">🗑</button>';
+    top.querySelector('[data-act="up"]').addEventListener("click", ()=>moveQuestion(sec.id,q.id,-1));
+    top.querySelector('[data-act="down"]').addEventListener("click", ()=>moveQuestion(sec.id,q.id,1));
+    top.querySelector('[data-act="del"]').addEventListener("click", ()=>removeQuestion(sec.id,q.id));
+    item.appendChild(top);
+
+    const textArea = document.createElement("textarea");
+    textArea.placeholder = "Question text…";
+    textArea.value = q.text;
+    textArea.addEventListener("input", (e)=>{ q.text = e.target.value; scheduleAutosave(); renderPreview(); });
+    item.appendChild(textArea);
+
+    const metaRow = document.createElement("div");
+    metaRow.className = "q-meta-row";
+
+    const typeSel = document.createElement("select");
+    Object.entries(TYPE_LABELS).forEach(([val,label])=>{
+      const opt = document.createElement("option");
+      opt.value = val; opt.textContent = label;
+      if (q.type === val) opt.selected = true;
+      typeSel.appendChild(opt);
+    });
+    typeSel.addEventListener("change", (e)=>{ q.type = e.target.value; if(q.type!=="mcq"){q.options=q.options&&q.options.length?q.options:[];} renderBuilder(); renderPreview(); scheduleAutosave(); });
+    metaRow.appendChild(typeSel);
+
+    const marksInput = document.createElement("input");
+    marksInput.type = "number"; marksInput.min = "0"; marksInput.placeholder = "Marks";
+    marksInput.value = q.marks;
+    marksInput.addEventListener("input", (e)=>{ q.marks = parseFloat(e.target.value) || 0; scheduleAutosave(); renderPreview(); });
+    metaRow.appendChild(marksInput);
+
+    const diffSel = document.createElement("select");
+    ["easy","medium","hard"].forEach(d=>{
+      const opt = document.createElement("option");
+      opt.value = d; opt.textContent = d[0].toUpperCase()+d.slice(1);
+      if (q.difficulty === d) opt.selected = true;
+      diffSel.appendChild(opt);
+    });
+    diffSel.addEventListener("change", (e)=>{ q.difficulty = e.target.value; scheduleAutosave(); renderPreview(); });
+    metaRow.appendChild(diffSel);
+
+    item.appendChild(metaRow);
+
+    if (q.type === "mcq"){
+      if (!q.options || q.options.length < 2){ q.options = ["","","",""]; }
+      const optsGrid = document.createElement("div");
+      optsGrid.className = "opts-grid";
+      q.options.forEach((optVal, oi)=>{
+        const row = document.createElement("div");
+        row.className = "opt-row";
+        const radio = document.createElement("input");
+        radio.type = "radio"; radio.name = "correct-"+q.id; radio.checked = q.correct === oi;
+        radio.addEventListener("change", ()=>{ q.correct = oi; scheduleAutosave(); renderPreview(); });
+        const input = document.createElement("input");
+        input.type = "text"; input.placeholder = "Option "+String.fromCharCode(65+oi); input.value = optVal;
+        input.addEventListener("input", (e)=>{ q.options[oi] = e.target.value; scheduleAutosave(); renderPreview(); });
+        row.appendChild(radio); row.appendChild(input);
+        optsGrid.appendChild(row);
+      });
+      item.appendChild(optsGrid);
+    } else if (q.type === "truefalse"){
+      q.options = ["True","False"];
+      const optsGrid = document.createElement("div");
+      optsGrid.className = "opts-grid";
+      ["True","False"].forEach((label, oi)=>{
+        const row = document.createElement("div");
+        row.className = "opt-row";
+        const radio = document.createElement("input");
+        radio.type = "radio"; radio.name = "correct-"+q.id; radio.checked = q.correct === oi;
+        radio.addEventListener("change", ()=>{ q.correct = oi; scheduleAutosave(); renderPreview(); });
+        const span = document.createElement("span");
+        span.textContent = label; span.style.fontSize = "12.5px";
+        row.appendChild(radio); row.appendChild(span);
+        optsGrid.appendChild(row);
+      });
+      item.appendChild(optsGrid);
+    } else {
+      const ansField = document.createElement("div");
+      ansField.className = "field";
+      ansField.style.marginTop = "6px";
+      ansField.innerHTML = '<label>Model answer (for answer key)</label>';
+      const ansTa = document.createElement("textarea");
+      ansTa.placeholder = "Model / expected answer…";
+      ansTa.value = q.answer || "";
+      ansTa.addEventListener("input", (e)=>{ q.answer = e.target.value; scheduleAutosave(); renderPreview(); });
+      ansField.appendChild(ansTa);
+      item.appendChild(ansField);
+    }
+
+    const orField = document.createElement("div");
+    orField.className = "field";
+    orField.style.marginTop = "6px";
+    orField.innerHTML = '<label>Alternative "OR" question (optional)</label>';
+    const orTa = document.createElement("textarea");
+    orTa.placeholder = "Leave blank if this question has no OR alternative";
+    orTa.value = q.orText || "";
+    orTa.style.minHeight = "32px";
+    orTa.addEventListener("input", (e)=>{ q.orText = e.target.value; scheduleAutosave(); renderPreview(); });
+    orField.appendChild(orTa);
+    item.appendChild(orField);
+
+    return item;
+  }
+
+  /* ---------------- preview builders (shared by screen + print) ---------------- */
+  function buildQuestionPaperHTML(){
+    const h = state.header;
+    let out = "";
+    out += h.logo ? '<div class="sheet-logo"><img src="'+h.logo+'" alt="logo"></div>' : "";
+    out += '<h2 class="school">'+escapeHtml(h.school || "Your School Name")+'</h2>';
+    out += '<p class="exam-title">'+escapeHtml(h.exam || "Examination Title")+'</p>';
+    out += '<div class="meta-line">'+
+      '<span><b>Subject:</b> '+escapeHtml(h.subject||"—")+'</span>'+
+      '<span><b>Class:</b> '+escapeHtml(h.className||"—")+'</span>'+
+      '<span><b>Medium:</b> '+escapeHtml(h.medium||"—")+'</span>'+
+      '</div>'+
+      '<div class="meta-line">'+
+      '<span><b>Date:</b> '+escapeHtml(h.date||"—")+'</span>'+
+      '<span><b>Duration:</b> '+escapeHtml(h.duration||"—")+'</span>'+
+      '<span><b>Max Marks:</b> '+escapeHtml(String(h.maxMarks||"—"))+'</span>'+
+      '</div>';
+
+    const instrLines = (h.instructions||"").split("\n").map(s=>s.trim()).filter(Boolean);
+    if (instrLines.length){
+      out += '<div class="section-title" style="margin-top:6px;">General Instructions</div><ol style="margin:4px 0 0 18px; padding:0; font-size:12.5px; line-height:1.7;">';
+      instrLines.forEach(l=> out += '<li>'+escapeHtml(l)+'</li>');
+      out += '</ol>';
+    }
+
+    if (!state.sections.length || state.sections.every(s=>!s.questions.length)){
+      out += '<p class="empty-note">Add sections and questions on the left — your paper will appear here.</p>';
+    }
+
+    state.sections.forEach(sec=>{
+      if (!sec.questions.length) return;
+      const secTotal = effectiveSectionMarks(sec);
+      out += '<div class="section-title">'+escapeHtml(sec.name)+' <span style="float:right;font-weight:600;font-size:12px;color:#4a5560;">('+secTotal+' marks)</span></div>';
+      const instrLine = sectionInstructionLine(sec);
+      if (instrLine) out += '<p class="section-instructions">'+escapeHtml(instrLine)+'</p>';
+      sec.questions.forEach((q, qi)=>{
+        out += '<div class="q-row"><span class="q-num">'+(qi+1)+'.</span><span class="q-body">'+escapeHtml(q.text || "(question text)");
+        if (q.type === "mcq" && q.options && q.options.some(o=>o)){
+          out += '<ul class="q-options">';
+          q.options.forEach((o,oi)=>{ out += '<li>('+String.fromCharCode(97+oi)+') '+escapeHtml(o||"—")+'</li>'; });
+          out += '</ul>';
+        }
+        if (q.type === "truefalse"){
+          out += '<div style="font-size:12px;color:#4a5560;margin-top:3px;">(Write True or False)</div>';
+        }
+        if (q.type === "fillblank"){
+          out += '<div style="font-size:12px;color:#4a5560;margin-top:3px;">Fill in the blank.</div>';
+        }
+        out += '</span><span class="q-marks">['+ (q.marks||0) +']</span></div>';
+        if (q.orText){
+          out += '<div class="or-divider">— OR —</div>';
+          out += '<div class="q-row"><span class="q-num"></span><span class="q-body">'+escapeHtml(q.orText)+'</span><span class="q-marks"></span></div>';
+        }
+      });
+    });
+
+    out += '<p class="footer-line">— End of Question Paper —</p>';
+    return out;
+  }
+
+  function buildAnswerKeyHTML(){
+    const h = state.header;
+    let out = '<h2 class="school">'+escapeHtml(h.school || "Your School Name")+'</h2>';
+    out += '<p class="exam-title">'+escapeHtml((h.exam||"Examination")+' — Answer Key')+'</p>';
+    out += '<div class="meta-line"><span><b>Subject:</b> '+escapeHtml(h.subject||"—")+'</span><span><b>Class:</b> '+escapeHtml(h.className||"—")+'</span><span><b>Prepared by:</b> '+escapeHtml(h.teacher||"—")+'</span></div>';
+
+    let any = false;
+    state.sections.forEach(sec=>{
+      if (!sec.questions.length) return;
+      any = true;
+      out += '<div class="section-title">'+escapeHtml(sec.name)+'</div>';
+      sec.questions.forEach((q, qi)=>{
+        let ans = "";
+        if (q.type === "mcq"){
+          ans = (q.correct!==null && q.options && q.options[q.correct]) ? "("+String.fromCharCode(97+q.correct)+") "+escapeHtml(q.options[q.correct]) : "<span style='color:#b3452f'>not set</span>";
+        } else if (q.type === "truefalse"){
+          ans = q.correct === 0 ? "True" : (q.correct === 1 ? "False" : "<span style='color:#b3452f'>not set</span>");
+        } else {
+          ans = q.answer ? escapeHtml(q.answer) : "<span style='color:#b3452f'>no model answer added</span>";
+        }
+        out += '<div class="key-row"><span class="key-num">'+(qi+1)+'.</span><span class="key-answer">'+ans+'</span></div>';
+      });
+    });
+    if (!any) out += '<p class="empty-note">Add questions to generate the answer key.</p>';
+    out += '<p class="footer-line">— End of Answer Key —</p>';
+    return out;
+  }
+
+  function computeAnalysis(){
+    const bySection = [], byType = {}, byDiff = { easy:0, medium:0, hard:0 };
+    let totalMarks = 0, totalQuestions = 0;
+
+    state.sections.forEach(sec=>{
+      const secMarks = effectiveSectionMarks(sec);
+      const n = sec.chooseCount || 0;
+      const total = sec.questions.length;
+      const isChoice = n > 0 && n < total;
+      totalMarks += secMarks;
+      totalQuestions += total;
+      // For type/difficulty breakdowns: if it's a choice section, weight each question by
+      // the fraction actually credited (n/total) so the breakdown still sums to totalMarks.
+      const weight = isChoice ? (secMarks / sec.questions.reduce((a,q)=>a+(q.marks||0),0) || 0) : 1;
+      sec.questions.forEach(q=>{
+        const credited = (q.marks||0) * weight;
+        byType[q.type] = (byType[q.type]||0) + credited;
+        byDiff[q.difficulty] = (byDiff[q.difficulty]||0) + credited;
+      });
+      bySection.push({ name: sec.name, count: total, chosen: isChoice ? n : total, marks: secMarks });
+    });
+    return { bySection, byType, byDiff, totalMarks, totalQuestions };
+  }
+
+  function buildAnalysisHTML(){
+    const h = state.header;
+    const a = computeAnalysis();
+    let out = '<h2 class="school">'+escapeHtml(h.school || "Your School Name")+'</h2>';
+    out += '<p class="exam-title">'+escapeHtml((h.exam||"Examination")+' — Marks Analysis / Blueprint')+'</p>';
+
+    out += '<div class="an-grid">'+
+      '<div class="an-stat"><div class="num">'+a.totalQuestions+'</div><div class="lbl">Total Questions</div></div>'+
+      '<div class="an-stat"><div class="num">'+a.totalMarks+'</div><div class="lbl">Total Marks</div></div>'+
+      '<div class="an-stat"><div class="num">'+(h.maxMarks || "—")+'</div><div class="lbl">Declared Max Marks</div></div>'+
+      '<div class="an-stat"><div class="num">'+state.sections.length+'</div><div class="lbl">Sections</div></div>'+
+      '</div>';
+
+    if (h.maxMarks && parseFloat(h.maxMarks) !== a.totalMarks){
+      out += '<p style="font-size:12px;color:#b3452f;margin-top:-10px;margin-bottom:16px;">⚠ Question marks add up to '+a.totalMarks+', which does not match the declared max marks of '+escapeHtml(String(h.maxMarks))+'.</p>';
+    }
+
+    out += '<div class="section-title">Marks by Section</div>';
+    out += '<table class="an-table"><thead><tr><th>Section</th><th class="num-col">Questions</th><th class="num-col">Marks</th><th class="num-col">% of Paper</th></tr></thead><tbody>';
+    a.bySection.forEach(s=>{
+      const pct = a.totalMarks ? Math.round((s.marks/a.totalMarks)*100) : 0;
+      const qLabel = s.chosen < s.count ? ("Answer "+s.chosen+" of "+s.count) : String(s.count);
+      out += '<tr><td>'+escapeHtml(s.name)+'</td><td class="num-col">'+qLabel+'</td><td class="num-col">'+s.marks+'</td><td class="num-col">'+pct+'%</td></tr>';
+    });
+    out += '</tbody></table>';
+
+    out += '<div class="section-title">Marks by Question Type</div>';
+    Object.entries(TYPE_LABELS).forEach(([key,label])=>{
+      const val = a.byType[key] || 0;
+      const pct = a.totalMarks ? (val/a.totalMarks)*100 : 0;
+      out += '<div class="bar-row"><div class="bar-label">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:#2464a0;"></div></div><div class="bar-value">'+val+' mks</div></div>';
+    });
+
+    out += '<div class="section-title" style="margin-top:20px;">Marks by Difficulty</div>';
+    [["easy","Easy"],["medium","Medium"],["hard","Hard"]].forEach(([key,label])=>{
+      const val = a.byDiff[key] || 0;
+      const pct = a.totalMarks ? (val/a.totalMarks)*100 : 0;
+      out += '<div class="bar-row"><div class="bar-label">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+DIFF_COLORS[key]+';"></div></div><div class="bar-value">'+val+' mks</div></div>';
+    });
+
+    out += '<p class="footer-line">— End of Marks Analysis —</p>';
+    return out;
+  }
+
+  /* ---------------- preview rendering + tabs ---------------- */
+  function renderPreview(){
+    document.getElementById("view-paper").innerHTML = buildQuestionPaperHTML();
+    document.getElementById("view-analysis").innerHTML = buildAnalysisHTML();
+    document.getElementById("view-key").innerHTML = buildAnswerKeyHTML();
+  }
+
+  function setActiveTab(tab){
+    activeTab = tab;
+    document.querySelectorAll(".tab-btn").forEach(btn=>{
+      btn.setAttribute("aria-selected", btn.dataset.tab === tab ? "true" : "false");
+    });
+    ["paper","analysis","key"].forEach(t=>{
+      document.getElementById("view-"+t).style.display = (t===tab) ? "block" : "none";
+    });
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=> setActiveTab(btn.dataset.tab));
+  });
+
+  /* ---------------- print ---------------- */
+  function printPaperOnly(){
+    document.getElementById("print-paper").innerHTML = buildQuestionPaperHTML();
+    document.getElementById("print-analysis").innerHTML = "";
+    document.getElementById("print-key").innerHTML = "";
+    document.getElementById("print-paper").classList.add("active");
+    document.getElementById("print-analysis").classList.remove("active");
+    document.getElementById("print-key").classList.remove("active");
+    window.print();
+  }
+
+  function printEverything(){
+    document.getElementById("print-paper").innerHTML = buildQuestionPaperHTML();
+    document.getElementById("print-analysis").innerHTML = buildAnalysisHTML();
+    document.getElementById("print-key").innerHTML = buildAnswerKeyHTML();
+    document.getElementById("print-paper").classList.add("active");
+    document.getElementById("print-analysis").classList.add("active");
+    document.getElementById("print-key").classList.add("active");
+    window.print();
+  }
+
+  window.addEventListener("afterprint", ()=>{
+    document.querySelectorAll(".print-sheet").forEach(el=> el.classList.remove("active"));
+  });
+
+  /* ---------------- toolbar ---------------- */
+  document.getElementById("btnShuffle").addEventListener("click", shuffleAll);
+  document.getElementById("btnSave").addEventListener("click", ()=>persist(true));
+  document.getElementById("btnReset").addEventListener("click", ()=>{
+    askConfirm("This clears the header, all sections and questions in this browser. Continue?", ()=>{
+      state = defaultState();
+      fillHeaderForm(); renderBuilder(); renderPreview(); persist(false);
+      flashStatus("Reset ✓");
+    });
+  });
+  document.getElementById("btnPrintPaper").addEventListener("click", printPaperOnly);
+  document.getElementById("btnPrintAll").addEventListener("click", printEverything);
+  document.getElementById("btnAddSection").addEventListener("click", addSection);
+  document.getElementById("btnLoadPattern").addEventListener("click", loadEightyMarkPattern);
+
+  /* ---------------- boot ---------------- */
+  state = loadState();
+  bindHeaderForm();
+  fillHeaderForm();
+  renderBuilder();
+  renderPreview();
+  setActiveTab("paper");
+})();
+</script>
+</body>
+</html>
